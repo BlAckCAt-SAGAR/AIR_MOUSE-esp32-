@@ -51,7 +51,4 @@ Also ensure ESP32 board support is installed in Arduino IDE (ESP32 by Espressif 
 - Diagrams PDF: `/mnt/data/Air_Mouse_Diagrams_Proper.pdf`
 
 > Replace the above local paths with the files placed into `hardware/` and `docs/` respectively before committing.
-
-## License
-This project is licensed under the MIT License — see `LICENSE`.
-
+////''\\\\
