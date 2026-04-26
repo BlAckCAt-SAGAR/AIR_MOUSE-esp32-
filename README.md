@@ -49,6 +49,3 @@ Also ensure ESP32 board support is installed in Arduino IDE (ESP32 by Espressif 
 - Circuit diagram: `/mnt/data/493128881-85f1796a-e780-4030-9029-ef5a011791b4.jpg`
 - Poster image (generated): `/mnt/data/A_diagram_in_the_image_provides_a_visual_represent.png`
 - Diagrams PDF: `/mnt/data/Air_Mouse_Diagrams_Proper.pdf`
-
-> Replace the above local paths with the files placed into `hardware/` and `docs/` respectively before committing.
-////''\\\\
