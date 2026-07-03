@@ -1,6 +1,3 @@
----
-
-```markdown
 # 🖱️ ESP32 Air Mouse with MPU6050
 
 A wireless air mouse based on **ESP32** and **MPU6050** (6‑axis gyroscope/accelerometer).  
