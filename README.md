@@ -1,51 +1,248 @@
+```markdown
+# 🖱️ ESP32 Air Mouse with MPU6050
 
-## Wiring (summary)
-- **MPU6050**
-  - VCC -> 3.3V on ESP32
-  - GND -> GND
-  - SDA -> GPIO21 (default Wire SDA)
-  - SCL -> GPIO22 (default Wire SCL)
+A wireless air mouse based on **ESP32** and **MPU6050** (6‑axis gyroscope/accelerometer).  
+It uses **BLE** to emulate a Bluetooth mouse, with physical buttons for left/right click and scroll.
 
-- **Buttons** (each button other pin -> GND)
-  - LEFT_CLICK_PIN  -> GPIO18
-  - RIGHT_CLICK_PIN -> GPIO19
-  - SCROLL_UP_PIN   -> GPIO14
-  - SCROLL_DOWN_PIN -> GPIO27
+![Poster](./docs/poster.png)  
+*Placeholder for actual poster image – see `/docs/` folder.*
 
-- **Power**
-  - Li-ion battery (3.7V) → USB-C charger module B+/B-
-  - Charger OUT+ → ESP32 VIN (or BAT input if your devboard has it)
-  - Charger OUT- → GND
-  - MPU6050 VCC must be 3.3V (do NOT connect to 5V unless breakout has regulator)
+---
 
-## Libraries required
-Install these from Arduino Library Manager:
-- `BleMouse` (or ESP32 BLE Mouse library)
-- `Adafruit_MPU6050`
-- `Adafruit_Sensor`
-- `Wire` (built-in)
+## ✨ Features
 
-Also ensure ESP32 board support is installed in Arduino IDE (ESP32 by Espressif Systems).
+- **Wireless BLE Mouse** – connect to any BLE‑enabled host (Windows, macOS, Linux, Android, iOS).
+- **Motion‑controlled cursor** – tilt the device to move the pointer.
+- **Auto‑calibration** – gyro offsets are measured at startup for stable drift‑free operation.
+- **Dynamic sensitivity** – faster movements accelerate cursor speed for natural control.
+- **Deadzone filtering** – eliminates jitter when holding the device still.
+- **Four physical buttons** – left click, right click, scroll up, scroll down.
+- **Low‑latency loop** – 5 ms delay for smooth responsiveness.
 
-## Setup / Build / Upload (Arduino)
-1. Install Arduino IDE or VSCode + PlatformIO.
-2. In Arduino IDE: File → Preferences → Additional Boards Manager URLs add ESP32 URL (https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json)
-3. Tools → Board → select your ESP32 dev board (e.g., "ESP32 Dev Module").
-4. Open `src/air_mouse.ino`.
-5. Install the listed libraries via Sketch → Include Library → Manage Libraries.
-6. Connect ESP32 via USB, select correct Port in Tools, then Upload.
+---
 
-## Notes about battery
-- Use a TP4056 + protection board or a charger module with protection.
-- Confirm the devboard accepts the charger OUT voltage at VIN/BAT.
-- 300 mAh is small. Add a power switch for safety.
+## 📦 Hardware Required
 
-## Files included
-- `src/air_mouse.ino` — main source
-- `hardware/circuit_diagram.jpg` — wiring image (local)
-- `docs/diagrams.pdf` and `docs/poster.png` — diagrams & poster PDFs/images
+| Component          | Quantity | Notes |
+|--------------------|----------|-------|
+| ESP32 Dev Board    | 1        | Any with BLE, e.g., ESP32‑WROOM |
+| MPU6050            | 1        | 6‑axis IMU (I²C) |
+| Push buttons       | 4        | Tactile switches |
+| 3.7 V Li‑ion battery| 1       | e.g., 300 mAh or larger |
+| TP4056 charger module | 1    | With battery protection (optional but recommended) |
+| Resistors          | 4× 10 kΩ | Pull‑up resistors (if not using INPUT_PULLUP) |
+| Wires & breadboard |          | For prototyping |
 
-## Circuit diagram and poster (local)
-- Circuit diagram: `/mnt/data/493128881-85f1796a-e780-4030-9029-ef5a011791b4.jpg`
-- Poster image (generated): `/mnt/data/A_diagram_in_the_image_provides_a_visual_represent.png`
-- Diagrams PDF: `/mnt/data/Air_Mouse_Diagrams_Proper.pdf`
+---
+
+## 🔌 Wiring Diagram (Mermaid)
+
+Below is a schematic representation using Mermaid. It shows the connections between the ESP32, MPU6050, buttons, and power.
+
+```mermaid
+graph TD
+    subgraph ESP32
+        VIN[VIN (5V input)]
+        3V3[3.3V output]
+        GND[GND]
+        GPIO21[GPIO21 - SDA]
+        GPIO22[GPIO22 - SCL]
+        GPIO18[GPIO18 - Left Click]
+        GPIO19[GPIO19 - Right Click]
+        GPIO14[GPIO14 - Scroll Up]
+        GPIO27[GPIO27 - Scroll Down]
+    end
+
+    subgraph MPU6050
+        VCC[VCC]
+        GND2[GND]
+        SDA[SDA]
+        SCL[SCL]
+    end
+
+    subgraph Buttons
+        B1[Left Click]
+        B2[Right Click]
+        B3[Scroll Up]
+        B4[Scroll Down]
+    end
+
+    subgraph Power
+        BAT[Li-ion 3.7V]
+        CHG[TP4056 Charger]
+    end
+
+    CHG -->|OUT+| VIN
+    CHG -->|OUT-| GND
+    BAT -->|B+| CHG
+    BAT -->|B-| CHG
+
+    3V3 --> VCC
+    GND --> GND2
+    GPIO21 --> SDA
+    GPIO22 --> SCL
+
+    GPIO18 --> B1
+    GPIO19 --> B2
+    GPIO14 --> B3
+    GPIO27 --> B4
+
+    B1 --> GND
+    B2 --> GND
+    B3 --> GND
+    B4 --> GND
+```
+
+> **Important**: The MPU6050 **must** be powered from 3.3 V (not 5 V) unless your breakout board has its own regulator.
+
+---
+
+## 📄 Pin Assignment Table
+
+| Function          | ESP32 Pin | Button to GND |
+|-------------------|-----------|---------------|
+| Left Click        | GPIO18    | Yes           |
+| Right Click       | GPIO19    | Yes           |
+| Scroll Up         | GPIO14    | Yes           |
+| Scroll Down       | GPIO27    | Yes           |
+| MPU6050 SDA       | GPIO21    | –             |
+| MPU6050 SCL       | GPIO22    | –             |
+| MPU6050 VCC       | 3.3V      | –             |
+| MPU6050 GND       | GND       | –             |
+
+All buttons are connected with internal pull‑up resistors (`INPUT_PULLUP`), so they read `LOW` when pressed.
+
+---
+
+## ⚙️ Software Setup
+
+### 1. Install Required Libraries
+
+Open the Arduino Library Manager and install:
+
+- **BleMouse** (by T-vK) – for BLE HID emulation  
+- **Adafruit MPU6050** – sensor driver  
+- **Adafruit Sensor** – unified sensor abstraction  
+- **Wire** – built‑in I²C library
+
+### 2. Install ESP32 Board Support
+
+1. In Arduino IDE, go to **File → Preferences**.
+2. Add the following URL to **Additional Boards Manager URLs**:  
+   `https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json`
+3. Open **Tools → Board → Boards Manager**, search for `esp32` and install the **ESP32 by Espressif Systems** package.
+
+### 3. Select the Correct Board
+
+Choose your board under **Tools → Board** (e.g., `ESP32 Dev Module`).  
+Set the **Partition Scheme** to `Huge APP` if you encounter storage issues.
+
+### 4. Open the Sketch
+
+- Download/clone this repository.
+- Open `main.ino` (or `src/air_mouse.ino`).
+- Connect the ESP32 via USB.
+- Select the correct COM/Port in **Tools → Port**.
+- Click **Upload**.
+
+---
+
+## 🧭 Calibration
+
+When the device starts, it automatically runs a **gyro calibration**:
+
+- Keep the device **completely still** for about 2 seconds.
+- The serial monitor will display the calculated offsets.
+- After calibration, the cursor should not drift when stationary.
+
+> If you notice drift after some time, press the reset button on the ESP32 to re‑calibrate.
+
+---
+
+## 🖱️ Usage
+
+1. **Power on** the device – the ESP32 will start broadcasting as `ESP32 BLE Mouse`.
+2. On your host device, go to Bluetooth settings and pair with `ESP32 BLE Mouse`.
+3. Once connected, the cursor will follow the **tilt** of the device:
+   - **Pitch** (forward/backward) → vertical movement.
+   - **Yaw** (left/right) → horizontal movement (inverted for natural feel).
+4. **Click** the physical buttons:
+   - Button on GPIO18 = left click
+   - Button on GPIO19 = right click
+   - GPIO14 = scroll up
+   - GPIO27 = scroll down (with a small debounce delay).
+5. The cursor speed adapts dynamically: faster tilting moves the cursor quicker.
+
+---
+
+## 📈 Software Flowchart
+
+```mermaid
+flowchart TD
+    A[Start] --> B[Init Serial & BLE]
+    B --> C[Init MPU6050]
+    C --> D[Setup Button Pins]
+    D --> E[Calibrate Gyro]
+    E --> F[Wait for BLE Connection]
+    F --> G[Loop: Read Sensors]
+    G --> H[Apply Offset & Deadzone]
+    H --> I[Compute Dynamic Sensitivity]
+    I --> J[Move Cursor]
+    J --> K[Read Buttons]
+    K --> L[Press/Release/Scroll]
+    L --> G
+```
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue                        | Possible Cause / Solution |
+|------------------------------|---------------------------|
+| MPU6050 not detected         | Check wiring; SDA/SCL may need pull‑up resistors. Ensure VCC is 3.3 V. |
+| Cursor jumps or drifts       | Calibration failed – restart and keep device still during calibration. |
+| No BLE device found          | Ensure `bleMouse.begin()` succeeds; try re‑flashing or resetting. |
+| Buttons not responding       | Verify pin numbers; buttons are active‑low, ensure they connect to GND. |
+| Battery doesn’t charge       | Confirm TP4056 wiring; use a multimeter to check voltage at VIN. |
+
+---
+
+## 🔋 Power & Battery Life
+
+- A 300 mAh Li‑ion battery can power the ESP32 for ~2‑3 hours (depending on BLE activity).
+- Use a **TP4056** charger module with over‑discharge protection.
+- **Always** add a physical power switch to cut the battery when not in use.
+
+---
+
+## 📂 Folder Structure
+
+```
+.
+├── main.ino                 # Main source code
+├── README.md                # This file
+├── hardware/
+│   └── circuit_diagram.jpg  # Wiring image (local)
+└── docs/
+    ├── diagrams.pdf         # Detailed schematic
+    └── poster.png           # Project poster
+```
+
+---
+
+## 📚 References
+
+- [MPU6050 Datasheet](https://invensense.tdk.com/wp-content/uploads/2015/02/MPU-6000-Datasheet1.pdf)
+- [ESP32 BLE Mouse Library](https://github.com/T-vK/ESP32-BLE-Mouse)
+- [Adafruit MPU6050 Library](https://github.com/adafruit/Adafruit_MPU6050)
+
+---
+
+## 📜 License
+
+This project is open‑source and available under the **MIT License**. Feel free to modify and distribute.
+
+---
+
+**Happy pointing!** 🚀
+```
