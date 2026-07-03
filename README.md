@@ -40,56 +40,25 @@ Below is a schematic representation using Mermaid. It shows the connections betw
 
 ```mermaid
 graph TD
-    subgraph ESP32
-        VIN[VIN (5V input)]
-        3V3[3.3V output]
-        GND[GND]
-        GPIO21[GPIO21 - SDA]
-        GPIO22[GPIO22 - SCL]
-        GPIO18[GPIO18 - Left Click]
-        GPIO19[GPIO19 - Right Click]
-        GPIO14[GPIO14 - Scroll Up]
-        GPIO27[GPIO27 - Scroll Down]
-    end
-
-    subgraph MPU6050
-        VCC[VCC]
-        GND2[GND]
-        SDA[SDA]
-        SCL[SCL]
-    end
-
-    subgraph Buttons
-        B1[Left Click]
-        B2[Right Click]
-        B3[Scroll Up]
-        B4[Scroll Down]
-    end
-
-    subgraph Power
-        BAT[Li-ion 3.7V]
-        CHG[TP4056 Charger]
-    end
-
-    CHG -->|OUT+| VIN
-    CHG -->|OUT-| GND
-    BAT -->|B+| CHG
-    BAT -->|B-| CHG
-
-    3V3 --> VCC
-    GND --> GND2
-    GPIO21 --> SDA
-    GPIO22 --> SCL
-
-    GPIO18 --> B1
-    GPIO19 --> B2
-    GPIO14 --> B3
-    GPIO27 --> B4
-
+    ESP32 -->|3.3V| MPU[MPU6050 VCC]
+    ESP32 -->|GND| MPU_GND[MPU6050 GND]
+    ESP32 -->|GPIO21| SDA[MPU6050 SDA]
+    ESP32 -->|GPIO22| SCL[MPU6050 SCL]
+    
+    ESP32 -->|GPIO18| B1[Left Click Button]
+    ESP32 -->|GPIO19| B2[Right Click Button]
+    ESP32 -->|GPIO14| B3[Scroll Up Button]
+    ESP32 -->|GPIO27| B4[Scroll Down Button]
+    
     B1 --> GND
     B2 --> GND
     B3 --> GND
     B4 --> GND
+    
+    BAT[Li-ion 3.7V] -->|B+| CHG[TP4056 Charger]
+    BAT -->|B-| CHG
+    CHG -->|OUT+| ESP32_VIN[ESP32 VIN]
+    CHG -->|OUT-| ESP32_GND[ESP32 GND]
 ```
 
 > **Important**: The MPU6050 **must** be powered from 3.3 V (not 5 V) unless your breakout board has its own regulator.
