@@ -3,9 +3,6 @@
 A wireless air mouse based on **ESP32** and **MPU6050** (6‑axis gyroscope/accelerometer).  
 It uses **BLE** to emulate a Bluetooth mouse, with physical buttons for left/right click and scroll.
 
-![Poster](./docs/poster.png)  
-*Placeholder for actual poster image – see `/docs/` folder.*
-
 ---
 
 ## ✨ Features
